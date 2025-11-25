@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
+
 ############################################
 # CUSTOM USER MODEL (Email Login)
 ############################################
@@ -79,3 +80,7 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def creator(self):
+        return self.owner

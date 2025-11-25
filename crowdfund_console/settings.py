@@ -111,3 +111,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 CROWDFUND_TARGET_MAX = int(os.getenv('CROWDFUND_TARGET_MAX', 10000000))  # 10 million EGP default
 
 SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'projects.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

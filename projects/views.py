@@ -67,12 +67,13 @@ def login_view(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
-        user = authenticate(request, email=email, password=password)
+        user = authenticate(request, username=email, password=password)
 
         if user is not None:
             login(request, user)
             return redirect("project_list")
         else:
+            from django.contrib import messages
             messages.error(request, "Invalid email or password.")
 
     return render(request, "login.html")
