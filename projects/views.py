@@ -9,6 +9,7 @@ from django.template.loader import render_to_string
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
+from django.conf import settings
 
 from .models import User, Project
 from .forms import RegistrationForm, ProjectForm
@@ -65,16 +66,31 @@ def activate(request, uidb64, token):
 
 def login_view(request):
     if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        user = authenticate(request, username=email, password=password)
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        if not email or not password:
+            messages.error(request, "Please provide email and password.")
+            return render(request, "login.html")
 
-        if user is not None:
-            login(request, user)
-            return redirect("project_list")
-        else:
-            from django.contrib import messages
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
             messages.error(request, "Invalid email or password.")
+            return render(request, "login.html")
+
+        if not user.is_active:
+            messages.error(request, "Account not activated. Check your email.")
+            return render(request, "login.html")
+
+        if not user.check_password(password):
+            messages.error(request, "Invalid email or password.")
+            return render(request, "login.html")
+
+        # set a backend so django.contrib.auth.login works
+        backend = settings.AUTHENTICATION_BACKENDS[0]
+        user.backend = backend
+        login(request, user)
+        return redirect("project_list")
 
     return render(request, "login.html")
 

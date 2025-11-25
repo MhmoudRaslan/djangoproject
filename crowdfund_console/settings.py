@@ -10,7 +10,7 @@ from django.core.management.utils import get_random_secret_key
 try:
     from dotenv import load_dotenv
     load_dotenv()
-except ImportError:
+except Exception:
     pass
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -102,7 +102,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user model
-AUTH_USER_MODEL = 'projects.User'
+AUTH_USER_MODEL = "projects.User"
 
 # Email backend (console for dev)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -113,6 +113,6 @@ CROWDFUND_TARGET_MAX = int(os.getenv('CROWDFUND_TARGET_MAX', 10000000))  # 10 mi
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
-    'projects.backends.EmailBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    "projects.backends.EmailBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]

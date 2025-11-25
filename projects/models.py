@@ -78,9 +78,10 @@ class Project(models.Model):
         if self.end_date < timezone.now().date():
             raise ValidationError("End date cannot be in the past.")
 
-    def __str__(self):
-        return self.title
-
     @property
     def creator(self):
+        # compatibility alias for older views that expect `creator`
         return self.owner
+
+    def __str__(self):
+        return self.title
