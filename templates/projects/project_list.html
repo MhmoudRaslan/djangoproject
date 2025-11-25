@@ -11,11 +11,22 @@
         <a href="{% url 'login' %}?next={% url 'project_create' %}" class="btn btn-outline-primary">Login to create</a>
     {% endif %}
 </div>
-<form method="get" class="mb-3">
-<label for="date">Filter by date:</label>
-<input type="date" name="date">
-<button class="btn btn-secondary btn-sm">Search</button>
-</form>
+<div class="row mb-3">
+  <div class="col-md-8">
+    <form class="row g-2" method="get">
+      <div class="col-auto">
+        <input type="text" name="q" class="form-control" placeholder="Search title..." value="{{ q }}">
+      </div>
+      <div class="col-auto">
+        <input type="date" name="date" class="form-control" value="{{ date }}">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a href="{% url 'project_list' %}" class="btn btn-outline-secondary">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
 <ul class="list-group">
 {% for project in projects %}
 <li class="list-group-item">

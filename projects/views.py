@@ -10,6 +10,8 @@ from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.conf import settings
+import datetime
+from django.utils import timezone
 
 from .models import User, Project, Donation
 from .forms import RegistrationForm, ProjectForm, DonationForm
@@ -98,6 +100,31 @@ class ProjectListView(ListView):
     template_name = "projects/project_list.html"
     context_object_name = "projects"
     paginate_by = 10
+
+    def get_queryset(self):
+        qs = super().get_queryset().filter(is_active=True).order_by("-created_at")
+        q = self.request.GET.get("q", "").strip()
+        date_str = self.request.GET.get("date", "").strip()
+
+        if q:
+            qs = qs.filter(title__icontains=q)
+
+        if date_str:
+            try:
+                # expects YYYY-MM-DD
+                d = datetime.date.fromisoformat(date_str)
+                qs = qs.filter(start_date__lte=d, end_date__gte=d)
+            except ValueError:
+                # invalid date — return empty queryset or ignore filter
+                qs = qs.none()
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["q"] = self.request.GET.get("q", "")
+        ctx["date"] = self.request.GET.get("date", "")
+        return ctx
 
 
 class ProjectDetailView(DetailView):
