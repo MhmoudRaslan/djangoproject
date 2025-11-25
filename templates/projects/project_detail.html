@@ -1,11 +1,48 @@
 {% extends 'base.html' %}
+{% block title %}{{ project.title }} - Crowdfund Console{% endblock %}
 {% block content %}
 <h2>{{ project.title }}</h2>
-<p>{{ project.details }}</p>
+<p>{{ project.details|linebreaks }}</p>
+
 <p><strong>Target:</strong> {{ project.target_amount }} EGP</p>
-<p><strong>Start:</strong> {{ project.start_date }} — <strong>End:</strong> {{ project.end_date }}</p>
-{% if user == project.owner %}
-<a href="/projects/{{ project.id }}/edit/" class="btn btn-warning">Edit</a>
-<a href="/projects/{{ project.id }}/delete/" class="btn btn-danger">Delete</a>
+<p><strong>Total raised:</strong> {{ total_donated }} EGP</p>
+
+{% if user.is_authenticated and user == project.owner %}
+    <div class="alert alert-info">
+        You are the owner of this project. You cannot donate to your own project.
+    </div>
+
+    <a href="{% url 'project_edit' pk=project.pk %}" class="btn btn-primary">Edit Project</a>
+    <a href="{% url 'project_delete' pk=project.pk %}" class="btn btn-danger">Delete Project</a>
+{% else %}
+    <h4>Donate</h4>
+    <form method="post" action="{% url 'project_donate' pk=project.pk %}">
+        {% csrf_token %}
+        {% for field in donation_form %}
+            <div class="mb-3">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div class="text-danger">
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-success">Donate</button>
+    </form>
 {% endif %}
+
+<h4 class="mt-4">Recent donations</h4>
+<ul>
+    {% for d in donations %}
+        <li>
+            {{ d.created_at|date:"Y-m-d H:i" }} —
+            {% if d.donor %}{{ d.donor.email }}{% else %}{{ d.donor_name|default:d.donor_email }}{% endif %}
+            : {{ d.amount }} EGP
+        </li>
+    {% empty %}
+        <li>No donations yet.</li>
+    {% endfor %}
+</ul>
 {% endblock %}

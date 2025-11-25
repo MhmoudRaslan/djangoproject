@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User, Project
+from .models import User, Project, Donation
 from django.core.validators import RegexValidator
 
 class RegistrationForm(UserCreationForm):
@@ -28,7 +28,6 @@ class RegistrationForm(UserCreationForm):
 
     def clean_mobile_phone(self):
         mobile_phone = self.cleaned_data.get('mobile_phone', '')
-        # Accept formats like: 01141704335, 10141704335, +201141704335
         if len(mobile_phone) < 10:
             raise forms.ValidationError("Phone number must be at least 10 digits.")
         return mobile_phone
@@ -52,3 +51,21 @@ class ProjectForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
+
+class DonationForm(forms.ModelForm):
+    class Meta:
+        model = Donation
+        fields = ["donor_name", "donor_email", "amount"]
+        widgets = {
+            "donor_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Your name (optional)"}),
+            "donor_email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "Your email (optional)"}),
+            "amount": forms.NumberInput(attrs={"class": "form-control", "min": 1, "placeholder": "Amount in EGP"}),
+        }
+
+    def clean_amount(self):
+        amt = self.cleaned_data.get("amount")
+        if amt is None or amt < 1:
+            raise forms.ValidationError("Donation amount must be at least 1 EGP.")
+        if amt > 1_000_000:
+            raise forms.ValidationError("Donation amount is too large.")
+        return amt

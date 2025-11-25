@@ -2,11 +2,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.utils import timezone
+from django.db.models import Sum
 
 
-############################################
-# CUSTOM USER MODEL (Email Login)
-############################################
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -48,9 +47,7 @@ class User(AbstractUser):
         return self.email
 
 
-############################################
-# PROJECT MODEL
-############################################
+
 class Project(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
     title = models.CharField(max_length=200)
@@ -80,8 +77,29 @@ class Project(models.Model):
 
     @property
     def creator(self):
-        # compatibility alias for older views that expect `creator`
         return self.owner
+
+    def total_donated(self):
+        return self.donations.aggregate(total=Sum('amount'))['total'] or 0
 
     def __str__(self):
         return self.title
+
+
+class Donation(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="donations")
+    donor = models.ForeignKey(
+        "User", on_delete=models.SET_NULL, null=True, blank=True, related_name="donations"
+    )
+    donor_name = models.CharField(max_length=200, blank=True)
+    donor_email = models.EmailField(blank=True)
+    amount = models.PositiveIntegerField()  # amount in EGP
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        if self.donor:
+            return f"{self.donor.email} -> {self.project.title} : {self.amount} EGP"
+        return f"{self.donor_name or self.donor_email} -> {self.project.title} : {self.amount} EGP"

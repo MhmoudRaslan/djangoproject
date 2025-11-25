@@ -11,8 +11,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from django.conf import settings
 
-from .models import User, Project
-from .forms import RegistrationForm, ProjectForm
+from .models import User, Project, Donation
+from .forms import RegistrationForm, ProjectForm, DonationForm
 from crowdfund_console.tokens import account_activation_token
 
 
@@ -21,14 +21,8 @@ def register(request):
         form = RegistrationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.is_active = True  # <-- change False to True (activate immediately)
+            user.is_active = True  
             user.save()
-
-            # Optional: still send welcome email (but no activation needed)
-            # current_site = get_current_site(request)
-            # subject = "Welcome to Crowdfund Console"
-            # message = render_to_string("emails/welcome.html", {"user": user})
-            # user.email_user(subject, message)
 
             messages.success(request, "Registration successful! You can now log in.")
             return redirect("login")
@@ -78,7 +72,7 @@ def login_view(request):
             messages.error(request, "Invalid email or password.")
             return render(request, "login.html")
 
-        # set a backend so django.contrib.auth.login works
+    
         backend = settings.AUTHENTICATION_BACKENDS[0]
         user.backend = backend
         login(request, user)
@@ -110,6 +104,13 @@ class ProjectDetailView(DetailView):
     model = Project
     template_name = "projects/project_detail.html"
     context_object_name = "project"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["donation_form"] = DonationForm()
+        ctx["donations"] = self.object.donations.all()[:10]
+        ctx["total_donated"] = self.object.total_donated()
+        return ctx
 
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
@@ -148,3 +149,35 @@ class ProjectDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         project = self.get_object()
         return self.request.user == project.creator
+
+
+def donate_project(request, pk):
+    project = get_object_or_404(Project, pk=pk, is_active=True)
+
+    if request.user.is_authenticated and request.user == project.owner:
+        messages.error(request, "You cannot donate to your own project.")
+        return redirect("project_detail", pk=project.pk)
+
+    if request.method == "POST":
+        form = DonationForm(request.POST)
+        if form.is_valid():
+            donation = form.save(commit=False)
+            donation.project = project
+            if request.user.is_authenticated:
+                donation.donor = request.user
+                if not donation.donor_email:
+                    donation.donor_email = request.user.email
+                if not donation.donor_name:
+                    donation.donor_name = f"{request.user.first_name} {request.user.last_name}".strip()
+            donation.save()
+            messages.success(request, f"Thank you for donating {donation.amount} EGP!")
+            return redirect("project_detail", pk=project.pk)
+        else:
+            messages.error(request, "Please correct the donation form errors.")
+            return render(request, "projects/project_detail.html", {
+                "project": project,
+                "donation_form": form,
+                "donations": project.donations.all()[:10],
+                "total_donated": project.total_donated(),
+            })
+    return redirect("project_detail", pk=project.pk)

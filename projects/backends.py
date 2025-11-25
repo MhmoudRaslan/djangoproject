@@ -4,9 +4,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class EmailBackend(ModelBackend):
-    """
-    Authenticate using email as identifier. Accepts `username` (legacy) or `email`.
-    """
+   
     def authenticate(self, request, username=None, password=None, **kwargs):
         email = username or kwargs.get("email")
         if not email or not password:
