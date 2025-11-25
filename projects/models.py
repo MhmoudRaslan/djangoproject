@@ -54,12 +54,12 @@ class User(AbstractUser):
 class Project(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
     title = models.CharField(max_length=200)
-    details = models.TextField()
+    details = models.TextField(
+        help_text="Describe your project in detail. Example: 'We are building a mobile app for farmers to track crops. Our target is to reach 500 users in 6 months...'"
+    )
     target_amount = models.PositiveIntegerField(
-        validators=[
-            MinValueValidator(1),
-            MaxValueValidator(10_000_000),
-        ]
+        validators=[MinValueValidator(1), MaxValueValidator(10_000_000)],
+        help_text="Target amount in EGP (Egyptian Pounds)"
     )
     start_date = models.DateField()
     end_date = models.DateField()
@@ -72,11 +72,11 @@ class Project(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
 
-        if self.start_date > self.end_date:
-            raise ValidationError("Start date must be before or equal to end date.")
-
-        if self.end_date < timezone.now().date():
-            raise ValidationError("End date cannot be in the past.")
+        if self.start_date and self.end_date:
+            if self.start_date > self.end_date:
+                raise ValidationError("Start date must be before or equal to end date.")
+            if self.end_date < timezone.now().date():
+                raise ValidationError("End date cannot be in the past.")
 
     @property
     def creator(self):

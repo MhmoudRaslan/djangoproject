@@ -40,4 +40,15 @@ class EmailAuthenticationForm(AuthenticationForm):
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = '__all__'
+        fields = ['title', 'details', 'target_amount', 'start_date', 'end_date']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Project title'}),
+            'details': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6,
+                'placeholder': 'Describe your project in detail...'
+            }),
+            'target_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Amount in EGP'}),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }

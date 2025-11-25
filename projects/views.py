@@ -21,24 +21,16 @@ def register(request):
         form = RegistrationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.is_active = False
+            user.is_active = True  # <-- change False to True (activate immediately)
             user.save()
 
-            # Send activation email
-            current_site = get_current_site(request)
-            subject = "Activate Your Account"
-            message = render_to_string(
-                "emails/email.html",
-                {
-                    "user": user,
-                    "domain": current_site.domain,
-                    "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-                    "token": account_activation_token.make_token(user),
-                },
-            )
+            # Optional: still send welcome email (but no activation needed)
+            # current_site = get_current_site(request)
+            # subject = "Welcome to Crowdfund Console"
+            # message = render_to_string("emails/welcome.html", {"user": user})
+            # user.email_user(subject, message)
 
-            user.email_user(subject, message)
-            messages.success(request, "Please check your email to activate your account.")
+            messages.success(request, "Registration successful! You can now log in.")
             return redirect("login")
     else:
         form = RegistrationForm()
@@ -128,7 +120,8 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     login_url = "login"
 
     def form_valid(self, form):
-        form.instance.creator = self.request.user
+        # set the owner field (not the `creator` property)
+        form.instance.owner = self.request.user
         return super().form_valid(form)
 
 
