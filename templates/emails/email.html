@@ -1,0 +1,6 @@
+{% autoescape off %}
+<p>Hi {{ user.username }},</p>
+<p>Thank you for registering. Please click the link below to activate your account:</p>
+<a href="http://{{ domain }}{% url 'activate' uid=uid token=token %}">Activate your account</a>
+<p>Thank you!</p>
+{% endautoescape %}

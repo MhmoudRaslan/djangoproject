@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ project.title }}</h2>
+<p>{{ project.details }}</p>
+<p><strong>Target:</strong> {{ project.target_amount }} EGP</p>
+<p><strong>Start:</strong> {{ project.start_date }} — <strong>End:</strong> {{ project.end_date }}</p>
+{% if user == project.owner %}
+<a href="/projects/{{ project.id }}/edit/" class="btn btn-warning">Edit</a>
+<a href="/projects/{{ project.id }}/delete/" class="btn btn-danger">Delete</a>
+{% endif %}
+{% endblock %}

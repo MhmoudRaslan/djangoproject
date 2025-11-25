@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}My Projects{% endblock %}
+{% block content %}
+<h2>My Projects</h2>
+<ul class="list-group">
+{% for project in projects %}
+<li class="list-group-item">
+<a href="/projects/{{ project.id }}/">{{ project.title }}</a>
+<span class="text-muted float-end">Target: {{ project.target_amount }} EGP</span>
+</li>
+{% empty %}
+<p>You have no projects yet.</p>
+{% endfor %}
+</ul>
+{% endblock %}

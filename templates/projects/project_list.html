@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}All Projects - Crowdfund Console{% endblock %}
+
+{% block content %}
+<h2>All Projects</h2>
+<form method="get" class="mb-3">
+<label for="date">Filter by date:</label>
+<input type="date" name="date">
+<button class="btn btn-secondary btn-sm">Search</button>
+</form>
+<ul class="list-group">
+{% for project in projects %}
+<li class="list-group-item">
+<a href="/projects/{{ project.id }}/">{{ project.title }}</a>
+<span class="text-muted float-end">Target: {{ project.target_amount }} EGP</span>
+</li>
+{% empty %}
+<p>No projects found.</p>
+{% endfor %}
+</ul>
+{% endblock %}
